@@ -50,7 +50,7 @@ namespace AoApi
 
 
             var connectionString = Configuration["ConnectionStrings:AoDB"];
-            services.AddDbContext<AOContext>(x => x.UseSqlServer(connectionString, y => y.MigrationsAssembly("Ao.Data")));
+            services.AddDbContext<AOContext>(x => x.UseSqlServer(connectionString, y => y.MigrationsAssembly("AoApi.Data")));
 
 
             services.AddSwaggerGen(setupAction =>
