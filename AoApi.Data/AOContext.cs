@@ -64,7 +64,6 @@ namespace AoApi.Data
                     Street = "Telegrafvej 9",
                     PhoneNumber = "29482948",
                     //StartDate = new DateTimeOffset(new DateTime(2000, 5, 12)),
-                    //LastChanged = DateTimeOffset.Now
                 },
                 // Employee 2
                 new Employee()
@@ -79,7 +78,6 @@ namespace AoApi.Data
                     Street = "Telegrafvej 9",
                     PhoneNumber = "29482949",
                     //StartDate = new DateTimeOffset(new DateTime(2000, 5, 12)),
-                    //LastChanged = DateTimeOffset.Now
                 },
                 // Employee 3
                 new Employee()
@@ -94,7 +92,6 @@ namespace AoApi.Data
                     Street = "Telegrafvej 9",
                     PhoneNumber = "29482950",
                     //StartDate = new DateTimeOffset(new DateTime(2000, 5, 12)),
-                    //LastChanged = DateTimeOffset.Now
                 },
                 // Employee 4
                 new Employee()
@@ -109,7 +106,6 @@ namespace AoApi.Data
                     Street = "Telegrafvej 9",
                     PhoneNumber = "29482948",
                     //StartDate = new DateTimeOffset(new DateTime(1924, 6, 2)),
-                    //LastChanged = DateTimeOffset.Now
                 },
                 // Employee 5
                 new Employee()
@@ -124,7 +120,6 @@ namespace AoApi.Data
                     Street = "Telegrafvej 9",
                     PhoneNumber = "29482948",
                     //StartDate = new DateTimeOffset(new DateTime(2000, 5, 12)),
-                    //LastChanged = DateTimeOffset.Now
                 },
                 // Employee 6
                 new Employee()
@@ -139,7 +134,6 @@ namespace AoApi.Data
                     Street = "Telegrafvej 9",
                     PhoneNumber = "29482948",
                     //StartDate = new DateTimeOffset(new DateTime(2000, 5, 12)),
-                    //LastChanged = DateTimeOffset.Now
                 }
                 );
 
@@ -199,7 +193,6 @@ namespace AoApi.Data
                     Wage = 50000,
                     Salary = 0,
                     PaymentMethod = EnumPaymentMethod.Monthly,
-                    //LastChanged = DateTimeOffset.Now
                 },
                 new Wallet()
                 {
@@ -208,7 +201,6 @@ namespace AoApi.Data
                     Wage = 50000,
                     Salary = 0,
                     PaymentMethod = EnumPaymentMethod.Monthly,
-                    //LastChanged = DateTimeOffset.Now
                 },
                 new Wallet()
                 {
@@ -217,7 +209,6 @@ namespace AoApi.Data
                     Wage = 50000,
                     Salary = 0,
                     PaymentMethod = EnumPaymentMethod.Monthly,
-                    //LastChanged = DateTimeOffset.Now
                 },
                 new Wallet()
                 {
@@ -226,7 +217,6 @@ namespace AoApi.Data
                     Wage = 0,
                     Salary = 600,
                     PaymentMethod = EnumPaymentMethod.Monthly,
-                    //LastChanged = DateTimeOffset.Now
                 },
                 new Wallet()
                 {
@@ -234,8 +224,7 @@ namespace AoApi.Data
                     EmployeeId = Guid.Parse("174FD8D4-F72B-4059-A7EA-05E687026B0D"),
                     Wage = 0,
                     Salary = 400,
-                    PaymentMethod = EnumPaymentMethod.Hourly,
-                    //LastChanged = DateTimeOffset.Now
+                    PaymentMethod = EnumPaymentMethod.Hourly
                 },
                 new Wallet()
                 {
@@ -243,8 +232,7 @@ namespace AoApi.Data
                     EmployeeId = Guid.Parse("163C03B3-A057-426D-AFA3-1A2631A693E2"),
                     Wage = 0,
                     Salary = 300,
-                    PaymentMethod = EnumPaymentMethod.Hourly,
-                    //LastChanged = DateTimeOffset.Now
+                    PaymentMethod = EnumPaymentMethod.Hourly
                 }
                 );
 
