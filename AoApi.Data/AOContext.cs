@@ -13,6 +13,7 @@ namespace AoApi.Data
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Workhours> Workhours { get; set; }
 
+
         public AOContext(DbContextOptions<AOContext> options) : base(options)
         {
         }
