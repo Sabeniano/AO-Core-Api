@@ -31,9 +31,14 @@ namespace AoApi.Data.Repositories
             return await _context.Set<T>().ToListAsync();
         }
 
-        public virtual async Task<T> GetByConditionAsync(Expression<Func<T, bool>> expression)
+        public virtual async Task<T> GetFirstByConditionAsync(Expression<Func<T, bool>> expression)
         {
             return await _context.Set<T>().Where(expression).FirstOrDefaultAsync();
+        }
+
+        public virtual async Task<IEnumerable<T>> GetAllByConditionAsync(Expression<Func<T, bool>> expression)
+        {
+            return await _context.Set<T>().Where(expression).ToListAsync();
         }
 
         public async Task<bool> SaveChangesAsync()
