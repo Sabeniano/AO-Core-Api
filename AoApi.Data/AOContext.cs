@@ -14,6 +14,7 @@ namespace AoApi.Data
         public DbSet<Job> Jobs { get; set; }
         public DbSet<Schedule> Schedules { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Role> Roles { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Workhours> Workhours { get; set; }
 
