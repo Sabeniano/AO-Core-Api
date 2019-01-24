@@ -2,7 +2,7 @@
 
 namespace AoApi.Data.Repositories
 {
-    public class EmployeeRepository : RepositoryBase<Employee>
+    public class EmployeeRepository : RepositoryBase<Employee>, IEmployeeRepository
     {
         public EmployeeRepository(AOContext context) : base(context)
         {

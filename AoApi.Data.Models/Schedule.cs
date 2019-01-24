@@ -16,7 +16,7 @@ namespace AoApi.Data.Models
         public DateTimeOffset EndHour { get; set; }
         public bool IsWeekend { get; set; }
         public bool IsHoliday { get; set; }
-        // isDayOff for ekstra løn på dage hvor man er tilkaldt?
+        // isDayOff for extra pay on days to get called on work when you're off
 
         // owner(employee) relation
         [Required(ErrorMessage = "Schedule must have an employee id")]

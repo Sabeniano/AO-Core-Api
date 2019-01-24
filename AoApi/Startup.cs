@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AoApi.Data;
+using AoApi.Data.Repositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -51,7 +52,7 @@ namespace AoApi
 
             var connectionString = Configuration["ConnectionStrings:AoDB"];
             services.AddDbContext<AOContext>(x => x.UseSqlServer(connectionString, y => y.MigrationsAssembly("AoApi.Data")));
-
+            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
             services.AddSwaggerGen(setupAction =>
             {
