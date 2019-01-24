@@ -39,6 +39,12 @@ namespace AoApi.Data
                     v => v.ToString(),
                     v => (EnumPaymentMethod)Enum.Parse(typeof(EnumPaymentMethod), v));
 
+            modelBuilder.Entity<Role>().HasData(
+                new Role() { Id = Guid.Parse("B48D780F-44AD-408F-B5F6-81BDFE15E617"), RoleTitle = "Master Administrator"},
+                new Role() { Id = Guid.Parse("A3D1A284-6CE6-494A-A616-822239DF2799"), RoleTitle = "Administrator"},
+                new Role() { Id = Guid.Parse("A105FA9D-8B3E-4A80-84E5-4A97C42ED931"), RoleTitle = "Employee"}
+            );
+
             modelBuilder.Entity<Job>().HasData(
                 new Job() { Id = Guid.Parse("8068CBF6-C595-4733-9C24-8104E8454B4C"), JobTitle = "CEO", Description = "Chief Executive Officer" },
                 new Job() { Id = Guid.Parse("6E0A64BC-7A50-4A6C-9125-8CCF6E54BF70"), JobTitle = "CIO", Description = "Chief Information Officer" },
@@ -55,9 +61,10 @@ namespace AoApi.Data
                 new Employee()
                 {
                     Id = Guid.Parse("9D90A452-9547-4D04-98ED-7D617E64AE1E"),
+                    JobId = Guid.Parse("8068CBF6-C595-4733-9C24-8104E8454B4C"),
                     FirstName = "Mikkel",
                     LastName = "Hammer",
-                    Birthday = /*new DateTimeOffset(*/new DateTime(1980, 11, 11)/*)*/,
+                    Birthday = new DateTimeOffset(new DateTime(1980, 11, 11)),
                     Email = "MikkelHammer@gmail.com",
                     City = "Copenhagen",
                     Country = "Denmark",
@@ -69,9 +76,10 @@ namespace AoApi.Data
                 new Employee()
                 {
                     Id = Guid.Parse("45C0C223-DE18-4E6E-99EA-AED94E7469F1"),
+                    JobId = Guid.Parse("8068CBF6-C595-4733-9C24-8104E8454B4C"),
                     FirstName = "Balen",
                     LastName = "Dezai",
-                    Birthday = /*new DateTimeOffset(*/new DateTime(1980, 11, 11)/*)*/,
+                    Birthday = new DateTimeOffset(new DateTime(1980, 11, 11)),
                     Email = "BalenDezai@gmail.com",
                     City = "Copenhagen",
                     Country = "Denmark",
@@ -83,23 +91,26 @@ namespace AoApi.Data
                 new Employee()
                 {
                     Id = Guid.Parse("DE9B842D-531A-4F17-AD69-0D3E11CB911D"),
+                    JobId = Guid.Parse("8068CBF6-C595-4733-9C24-8104E8454B4C"),
                     FirstName = "Jason",
                     LastName = "Sabeniano",
-                    Birthday = /*new DateTimeOffset(*/new DateTime(1997, 7, 23)/*)*/,
+                    Birthday = new DateTimeOffset(new DateTime(1997, 7, 23)),
                     Email = "JasonSabeniano@gmail.com",
                     City = "Copenhagen",
                     Country = "Denmark",
                     Street = "Telegrafvej 9",
                     PhoneNumber = "29482950",
                     //StartDate = new DateTimeOffset(new DateTime(2000, 5, 12)),
+
                 },
                 // Employee 4
                 new Employee()
                 {
                     Id = Guid.Parse("195C5A46-96F9-446B-B4F7-864AB2DC49DE"),
+                    JobId = Guid.Parse("72163C34-3D32-4A78-9701-1F708053978F"),
                     FirstName = "Franz",
                     LastName = "Kafka",
-                    Birthday = /*new DateTimeOffset(*/new DateTime(1883, 07, 3)/*)*/,
+                    Birthday = new DateTimeOffset(new DateTime(1883, 07, 3)),
                     Email = "FranzKafka@gmail.com",
                     City = "Prague",
                     Country = "Czech republic",
@@ -111,9 +122,10 @@ namespace AoApi.Data
                 new Employee()
                 {
                     Id = Guid.Parse("174FD8D4-F72B-4059-A7EA-05E687026B0D"),
+                    JobId = Guid.Parse("0532F0DF-C92D-4A10-9D1A-8A5935C541A2"),
                     FirstName = "Fjodor",
                     LastName = "Dostojevskij",
-                    Birthday = /*new DateTimeOffset(*/new DateTime(1821, 11, 11)/*)*/,
+                    Birthday = new DateTimeOffset(new DateTime(1821, 11, 11)),
                     Email = "FjordorDostojevskij@gmail.com",
                     City = "Moskva",
                     Country = "Russia",
@@ -125,9 +137,10 @@ namespace AoApi.Data
                 new Employee()
                 {
                     Id = Guid.Parse("163C03B3-A057-426D-AFA3-1A2631A693E2"),
+                    JobId = Guid.Parse("76C2FAB8-7161-49B7-88C6-F3AAF484EA64"),
                     FirstName = "Ernest",
                     LastName = "Hemingway",
-                    Birthday = /*new DateTimeOffset(*/new DateTime(1899, 07, 21)/*)*/,
+                    Birthday = new DateTimeOffset(new DateTime(1899, 07, 21)),
                     Email = "ErnestHemingway@gmail.com",
                     City = "Springfield",
                     Country = "USA",
@@ -145,8 +158,26 @@ namespace AoApi.Data
                     EmployeeId = Guid.Parse("DE9B842D-531A-4F17-AD69-0D3E11CB911D"),
                     Username = "Superuser",
                     Email = "SU@gmail.com",
-                    Role = "Master administrator",
+                    RoleId = Guid.Parse("B48D780F-44AD-408F-B5F6-81BDFE15E617"),
                     Password = "SU1234"
+                },
+                new User()
+                {
+                    Id = Guid.Parse("A3D1A284-6CE6-494A-A616-822239DF2799"),
+                    EmployeeId = Guid.Parse("195C5A46-96F9-446B-B4F7-864AB2DC49DE"),
+                    Username = "Administrativeuser",
+                    Email = "AU@gmail.com",
+                    RoleId = Guid.Parse("A3D1A284-6CE6-494A-A616-822239DF2799"),
+                    Password = "AU1234"
+                },
+                new User()
+                {
+                    Id = Guid.Parse("A105FA9D-8B3E-4A80-84E5-4A97C42ED931"),
+                    EmployeeId = Guid.Parse("163C03B3-A057-426D-AFA3-1A2631A693E2"),
+                    Username = "Employeeuser",
+                    Email = "EU@gmail.com",
+                    RoleId = Guid.Parse("A105FA9D-8B3E-4A80-84E5-4A97C42ED931"),
+                    Password = "EU1234"
                 }
                 );
 
@@ -158,9 +189,9 @@ namespace AoApi.Data
                     EmployeeId = Guid.Parse("9D90A452-9547-4D04-98ED-7D617E64AE1E"),
                     IsHoliday = false,
                     IsWeekend = false,
-                    WorkDate = /*new DateTimeOffset(*/new DateTime(2018, 12, 23)/*)*/,
-                    //StartWorkHour = new DateTimeOffset(new DateTime(2018, 12, 23, 6, 0, 0)),
-                    //EndWorkHour = new DateTimeOffset(new DateTime(2018, 12, 23, 12, 0, 0))
+                    WorkDate = new DateTimeOffset(new DateTime(2018, 12, 23)),
+                    StartHour = new DateTimeOffset(new DateTime(2018, 12, 23, 6, 0, 0)),
+                    EndHour = new DateTimeOffset(new DateTime(2018, 12, 23, 12, 0, 0))
                 },
                 new Schedule()
                 {
@@ -168,9 +199,9 @@ namespace AoApi.Data
                     EmployeeId = Guid.Parse("45C0C223-DE18-4E6E-99EA-AED94E7469F1"),
                     IsHoliday = true,
                     IsWeekend = true,
-                    WorkDate = /*new DateTimeOffset(*/new DateTime(2019, 1, 1)/*)*/,
-                    //StartWorkHour = new DateTimeOffset(new DateTime(2019, 1, 1, 6, 0, 0)),
-                    //EndWorkHour = new DateTimeOffset(new DateTime(2019, 1, 1, 12, 0, 0))
+                    WorkDate = new DateTimeOffset(new DateTime(2019, 1, 1)),
+                    StartHour = new DateTimeOffset(new DateTime(2019, 1, 1, 6, 0, 0)),
+                    EndHour = new DateTimeOffset(new DateTime(2019, 1, 1, 12, 0, 0))
                 },
                 new Schedule()
                 {
@@ -178,9 +209,9 @@ namespace AoApi.Data
                     EmployeeId = Guid.Parse("DE9B842D-531A-4F17-AD69-0D3E11CB911D"),
                     IsHoliday = true,
                     IsWeekend = true,
-                    WorkDate = /*new DateTimeOffset(*/new DateTime(2019, 1, 1)/*)*/,
-                    //StartWorkHour = new DateTimeOffset(new DateTime(2019, 1, 1, 12, 0, 0)),
-                    //EndWorkHour = new DateTimeOffset(new DateTime(2019, 1, 1, 18, 0, 0))
+                    WorkDate = new DateTimeOffset(new DateTime(2019, 1, 1)),
+                    StartHour = new DateTimeOffset(new DateTime(2019, 1, 1, 12, 0, 0)),
+                    EndHour = new DateTimeOffset(new DateTime(2019, 1, 1, 18, 0, 0))
                 }
                 );
 
