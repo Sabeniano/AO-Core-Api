@@ -3,6 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AoApi.Data;
+using AoApi.Data.DtoModels.EmployeeDtos;
+using AoApi.Data.DtoModels.JobDtos;
+using AoApi.Data.DtoModels.RoleDtos;
+using AoApi.Data.DtoModels.ScheduleDtos;
+using AoApi.Data.DtoModels.UserDtos;
+using AoApi.Data.DtoModels.WalletDtos;
+using AoApi.Data.DtoModels.WorkhoursDtos;
+using AoApi.Data.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -75,7 +83,46 @@ namespace AoApi
 
             Mapper.Initialize(config =>
             {
+                config.CreateMap<Employee, EmployeeDto>()
+                .ForMember(dest => dest.JobTitle, opt => opt.MapFrom(src => src.Job.JobTitle));
+                config.CreateMap<EmployeeCreateDto, Employee>();
+                config.CreateMap<EmployeeUpdateDto, Employee>();
+                config.CreateMap<Employee, EmployeeUpdateDto>();
 
+                config.CreateMap<Job, JobDto>();
+                config.CreateMap<JobCreateDto, Job>();
+                config.CreateMap<JobUpdateDto, Job>();
+                config.CreateMap<Job, JobUpdateDto>();
+
+                config.CreateMap<Role, RoleDto>();
+                config.CreateMap<RoleCreateDto, Role>();
+                config.CreateMap<RoleUpdateDto, Role>();
+                config.CreateMap<Role, RoleUpdateDto>();
+
+                config.CreateMap<Schedule, ScheduleDto>()
+                .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FirstName));
+                config.CreateMap<ScheduleCreateDto, Schedule>();
+                config.CreateMap<ScheduleUpdateDto, Schedule>();
+                config.CreateMap<Schedule, ScheduleUpdateDto>();
+
+                config.CreateMap<User, UserDto>()
+                .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FirstName))
+                .ForMember(dest => dest.RoleTitle, opt => opt.MapFrom(src => src.Role.RoleTitle));
+                config.CreateMap<UserCreateDto, User>();
+                config.CreateMap<UserUpdateDto, User>();
+                config.CreateMap<User, UserUpdateDto>();
+
+                config.CreateMap<Wallet, WalletDto>()
+                .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FirstName));
+                config.CreateMap<WalletCreateDto, Wallet>();
+                config.CreateMap<WalletUpdateDto, Wallet>();
+                config.CreateMap<Wallet, WalletUpdateDto>();
+
+                config.CreateMap<Workhours, WorkhoursDto>()
+                .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FirstName));
+                config.CreateMap<WorkhoursCreateDto, Workhours>();
+                config.CreateMap<WorkhoursUpdateDto, Workhours>();
+                config.CreateMap<Workhours, WorkhoursUpdateDto>();
             });
 
             app.UseSwaggerUI(c =>
