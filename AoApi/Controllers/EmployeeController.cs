@@ -1,5 +1,6 @@
 ﻿using AoApi.Data.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace AoApi.Controllers
@@ -24,11 +25,14 @@ namespace AoApi.Controllers
         }
 
         [HttpGet("{employeeId}")]
-        public async Task<IActionResult> GetOneEmployeeAsync()
+        public async Task<IActionResult> GetOneEmployeeAsync([FromRoute] Guid employeeId)
         {
-            var foundEmployees = await _employeeRepository.GetAllAsync();
+            var foundEmployee = await _employeeRepository.GetFirstByConditionAsync(e => e.Id == employeeId);
 
-            return Ok(foundEmployees);
+            if (foundEmployee == null)
+                return NotFound();
+
+            return Ok(foundEmployee);
         }
 
         [HttpPost]
@@ -50,8 +54,14 @@ namespace AoApi.Controllers
         }
 
         [HttpDelete("{employeeId}")]
-        public async Task<IActionResult> DeleteEmployeeAsync()
+        public async Task<IActionResult> DeleteEmployeeAsync([FromRoute] Guid employeeId)
         {
+            var foundEmployee = await _employeeRepository.GetFirstByConditionAsync(e => e.Id == employeeId);
+
+            if (foundEmployee == null)
+                return NotFound();
+
+            _employeeRepository.Delete(foundEmployee);
             return Ok();
         }
     }
