@@ -4,4 +4,14 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="DtoModels\" />
+    <Folder Include="Repositories\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AoApi.Data.Models\AoApi.Data.Models.csproj" />
+    <ProjectReference Include="..\AoApi.Data\AoApi.Data.csproj" />
+  </ItemGroup>
+
 </Project>
