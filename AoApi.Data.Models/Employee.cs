@@ -24,7 +24,7 @@ namespace AoApi.Data.Models
         public string Street { get; set; }
         public string PhoneNumber { get; set; }
 
-        // relation til User
+        // relation to User
         public User User { get; set; }
 
         // relation to job

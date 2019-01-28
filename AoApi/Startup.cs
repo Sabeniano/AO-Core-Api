@@ -11,6 +11,7 @@ using AoApi.Data.DtoModels.UserDtos;
 using AoApi.Data.DtoModels.WalletDtos;
 using AoApi.Data.DtoModels.WorkhoursDtos;
 using AoApi.Data.Models;
+using AoApi.Data.Repositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -59,7 +60,7 @@ namespace AoApi
 
             var connectionString = Configuration["ConnectionStrings:AoDB"];
             services.AddDbContext<AOContext>(x => x.UseSqlServer(connectionString, y => y.MigrationsAssembly("AoApi.Data")));
-
+            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
             services.AddSwaggerGen(setupAction =>
             {
