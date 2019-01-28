@@ -1,4 +1,4 @@
-﻿using AoApi.Data.Repositories;
+﻿using AoApi.Services.Data.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
