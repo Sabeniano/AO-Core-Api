@@ -3,9 +3,9 @@ using AoApi.Data.Models;
 using AoApi.Data.Repositories;
 
 
-namespace AoApi.Services.DataRepositories
+namespace AoApi.Services.Data.Repositories
 {
-    public class RoleRepository : RepositoryBase<Role>
+    public class RoleRepository : RepositoryBase<Role>, IRoleRepository
     {
         public RoleRepository(AOContext context) : base(context)
         {

@@ -1,7 +1,7 @@
 ﻿using AoApi.Data.Models;
 using AoApi.Data.Repositories;
 
-namespace AoApi.Services.DataRepositories
+namespace AoApi.Services.Data.Repositories
 {
     public interface IUserRepository : IRepositoryBase<User>
     {
