@@ -1,7 +1,9 @@
-﻿using AoApi.Services.Data.Repositories;
+﻿using AoApi.Services.PropertyMappingServices;
+using AoApi.Services.Data.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
+using AoApi.Helpers;
 
 namespace AoApi.Controllers
 {
@@ -10,14 +12,20 @@ namespace AoApi.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly IPropertyMappingService _propertyMappingService;
+        private readonly ITypeHelperService _typeHelperService;
 
-        public EmployeeController(IEmployeeRepository employeeRepository)
+        public EmployeeController(
+            IEmployeeRepository employeeRepository, IPropertyMappingService propertyMappingService,
+            ITypeHelperService typeHelperService)
         {
             _employeeRepository = employeeRepository;
+            _propertyMappingService = propertyMappingService;
+            _typeHelperService = typeHelperService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllEmployeesAsync()
+        public async Task<IActionResult> GetAllEmployeesAsync(RequestParameters request)
         {
             var foundEmployees = await _employeeRepository.GetAllAsync();
 

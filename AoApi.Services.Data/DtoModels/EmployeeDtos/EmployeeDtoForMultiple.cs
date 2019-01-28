@@ -2,16 +2,13 @@
 
 namespace AoApi.Services.Data.DtoModels.EmployeeDtos
 {
-    public class EmployeeDto
+    public class EmployeeDtoForMultiple
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
         public DateTimeOffset Birthday { get; set; }
-        public string City { get; set; }
-        public string Country { get; set; }
-        public string Street { get; set; }
-        public string PhoneNumber { get; set; }
+        public string Address { get; set; }
         public string JobTitle { get; set; }
     }
 }

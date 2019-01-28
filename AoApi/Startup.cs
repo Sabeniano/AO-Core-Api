@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AoApi.Data;
 using AoApi.Data.Models;
 using AoApi.Data.Repositories;
+using AoApi.services.PropertyMappingServices;
 using AoApi.Services.Data.DtoModels.EmployeeDtos;
 using AoApi.Services.Data.DtoModels.JobDtos;
 using AoApi.Services.Data.DtoModels.RoleDtos;
@@ -19,6 +20,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -63,6 +66,28 @@ namespace AoApi
             services.AddDbContext<AOContext>(x => x.UseSqlServer(connectionString, y => y.MigrationsAssembly("AoApi.Data")));
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+            services.AddScoped<IUrlHelper, UrlHelper>(implementationFactory =>
+            {
+                var actionContext = implementationFactory.GetService<IActionContextAccessor>().ActionContext;
+                return new UrlHelper(actionContext);
+            });
+
+            services.AddSingleton<IPropertyMappingService, PropertyMappingService>(implementationFactory =>
+            {
+                var pms = new PropertyMappingService();
+
+                pms.AddPropertyMapping<EmployeeDtoForMultiple, Employee>(new Dictionary<string, IEnumerable<string>>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "Id", new List<string>() { "Id" }},
+                    { "Name", new List<string>() { "FirstName", "LastName" }},
+                    { "Address", new List<string>() { "City", "Country", "Street"}}
+                });
+
+                return pms;
+            });
+
             services.AddSwaggerGen(setupAction =>
             {
                 setupAction.SwaggerDoc("v1", new Info { Title = "Administrative Organizer Api", Version = "v1" });
@@ -90,6 +115,9 @@ namespace AoApi
                 config.CreateMap<EmployeeCreateDto, Employee>();
                 config.CreateMap<EmployeeUpdateDto, Employee>();
                 config.CreateMap<Employee, EmployeeUpdateDto>();
+                config.CreateMap<Employee, EmployeeDtoForMultiple>()
+                    .ForMember(dest => dest.Address, opt => opt.MapFrom(src => $"{src.Street} {src.City} {src.Country}"))
+                    .ForMember(dest => dest.Name, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"));
 
                 config.CreateMap<Job, JobDto>();
                 config.CreateMap<JobCreateDto, Job>();
