@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AoApi.Data;
 using AoApi.Data.Models;
-using AoApi.Data.Repositories;
-using AoApi.services.PropertyMappingServices;
+using AoApi.Services;
 using AoApi.Services.Data.DtoModels.EmployeeDtos;
 using AoApi.Services.Data.DtoModels.JobDtos;
 using AoApi.Services.Data.DtoModels.RoleDtos;
@@ -14,10 +12,10 @@ using AoApi.Services.Data.DtoModels.UserDtos;
 using AoApi.Services.Data.DtoModels.WalletDtos;
 using AoApi.Services.Data.DtoModels.WorkhoursDtos;
 using AoApi.Services.Data.Repositories;
+using AoApi.Services.PropertyMappingServices;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -25,8 +23,6 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -59,7 +55,7 @@ namespace AoApi
             {
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             })
-            .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
 
             var connectionString = Configuration["ConnectionStrings:AoDB"];
@@ -87,6 +83,12 @@ namespace AoApi
 
                 return pms;
             });
+
+            
+            services.AddScoped<IPaginationUrlHelper, PaginationUrlHelper>();
+            services.AddScoped<IHateoasHelper, HateoasHelper>();
+            services.AddTransient<ITypeHelperService, TypeHelperService>();
+            services.AddScoped<IControllerHelper, ControllerHelper>();
 
             services.AddSwaggerGen(setupAction =>
             {

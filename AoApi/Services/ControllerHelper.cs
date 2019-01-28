@@ -3,6 +3,7 @@ using AoApi.Services.Data.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 
 namespace AoApi.Services
 {
@@ -36,6 +37,27 @@ namespace AoApi.Services
             var linksForObj = _hateoasHelper.CreateLinksForResource((Guid)shapedObjAsDict["Id"], fields, resourceName);
             ((IDictionary<string, object>)shapedObj).Add("links", linksForObj);
             return shapedObj;
+        }
+
+        public IEnumerable<IDictionary<string, object>> AddLinksToShapedObjects<T>(IEnumerable<T> objs, string resourceName, string fields)
+        {
+            var linkedObjs = objs.Select(obj =>
+            {
+                var objAsDict = obj as IDictionary<string, object>;
+                objAsDict.Add("links", _hateoasHelper.CreateLinksForResource((Guid)objAsDict["Id"], fields, resourceName));
+                return objAsDict;
+            });
+
+            return linkedObjs;
+        }
+
+        public ExpandoObject AddLinksToCollection(IEnumerable<IDictionary<string, object>> collection, RequestParameters requestParameters, bool hasNext, bool hasPrevious, string resourceName)
+        {
+            var linkedCollection = new ExpandoObject();
+            var links = _hateoasHelper.CreateLinksForResources(requestParameters, hasNext, hasPrevious, resourceName);
+            ((IDictionary<string, object>)linkedCollection).Add("records", collection);
+            ((IDictionary<string, object>)linkedCollection).Add("links", links);
+            return linkedCollection;
         }
 
         public PaginationMetaDataObject CreatePaginationMetadataObject<T>(PagedList<T> pagedlist, RequestParameters requestParameters, string routeName)
