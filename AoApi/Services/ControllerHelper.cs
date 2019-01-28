@@ -60,6 +60,11 @@ namespace AoApi.Services
             return linkedCollection;
         }
 
+        public IEnumerable<LinksObject> CreateLinksForResource(Guid id, string fields, string resourceName)
+        {
+            return _hateoasHelper.CreateLinksForResource(id, fields, resourceName);
+        }
+
         public PaginationMetaDataObject CreatePaginationMetadataObject<T>(PagedList<T> pagedlist, RequestParameters requestParameters, string routeName)
         {
             var previousPageLink = pagedlist.HasPrevious ? _paginationUrlHelper.CreateUrlForResource(requestParameters, PageType.PreviousPage, routeName) : null;

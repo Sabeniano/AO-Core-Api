@@ -34,7 +34,7 @@ namespace AoApi.Controllers
         }
 
         [HttpGet(Name = "GetEmployees")]
-        public async Task<IActionResult> GetAllEmployeesAsync([FromQuery] RequestParameters request, [FromHeader]string mediaType)
+        public async Task<IActionResult> GetAllEmployeesAsync([FromQuery] RequestParameters request, [FromHeader(Name = "accept")] string mediaType)
         {
             if (string.IsNullOrWhiteSpace(request.OrderBy))
             {
@@ -85,36 +85,81 @@ namespace AoApi.Controllers
             return Ok(shapedEmployees);
         }
 
-        [HttpGet("{employeeId}")]
-        public async Task<IActionResult> GetOneEmployeeAsync([FromRoute] Guid employeeId)
+        [HttpGet("{employeeId}", Name = "GetEmployee")]
+        public async Task<IActionResult> GetOneEmployeeAsync([FromRoute] Guid employeeId, [FromQuery] string fields, [FromHeader(Name = "accept")] string mediaType)
         {
             var foundEmployee = await _employeeRepository.GetFirstByConditionAsync(e => e.Id == employeeId);
 
             if (foundEmployee == null)
                 return NotFound();
 
-            return Ok(foundEmployee);
+            var employeeToReturn = Mapper.Map<EmployeeDto>(foundEmployee);
+
+            if (!string.IsNullOrWhiteSpace(fields))
+            {
+                if (!_typeHelperService.TypeHasProperties<EmployeeDto>(fields))
+                    return BadRequest();
+            }
+
+            var shapedEmployee = employeeToReturn.ShapeData(fields);
+
+            if (mediaType == "application/vnd.AO.json+hateoas")
+            {
+                ((IDictionary<string, object>)shapedEmployee).Add("links", _controllerHelper.CreateLinksForResource(foundEmployee.Id, fields, "Employee"));
+            }
+            
+            return Ok(shapedEmployee);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateEmployeeAsync()
+        public async Task<IActionResult> CreateEmployeeAsync(EmployeeCreateDto employeeToCreate, [FromQuery] string fields, [FromHeader(Name = "accept")] string mediaType)
         {
-            return Ok();
+            var employeeEntity = Mapper.Map<Employee>(employeeToCreate);
+
+            employeeEntity.Id = Guid.NewGuid();
+
+            _employeeRepository.Create(employeeEntity);
+
+            if (!await _employeeRepository.SaveChangesAsync())
+            {
+                //  change to logging
+                throw new Exception("Failed to save employee");
+            }
+
+            var employeeFromRepo = _employeeRepository.GetFirstByConditionAsync(x => x.Id == employeeEntity.Id);
+
+            var employeeToReturn = Mapper.Map<EmployeeDto>(employeeFromRepo);
+
+            if (mediaType == "application/vnd.AO.json+hateoas")
+            {
+                var shapedEmployee = _controllerHelper.ShapeAndAddLinkToObject(employeeToReturn, "Employee", fields);
+
+                return CreatedAtRoute("GetEmployee", new { employeeId = employeeToReturn.Id }, shapedEmployee);
+            }
+
+            if (!string.IsNullOrWhiteSpace(fields))
+            {
+                var shapedEmployee = employeeToReturn.ShapeData(fields);
+
+                return CreatedAtRoute("GetEmployee", new { employeeId = employeeToReturn.Id }, shapedEmployee);
+            }
+
+            return CreatedAtRoute("GetEmployee", new { employeeId = employeeToReturn.Id }, employeeToReturn);
         }
 
-        [HttpPut("{employeeId}")]
+        [HttpPut("{employeeId}", Name = "UpdateEmployee")]
         public async Task<IActionResult> UpdateEmployeeAsync()
         {
             return Ok();
         }
 
-        [HttpPatch("{employeeId}")]
+        [HttpPatch("{employeeId}", Name = "PartiallyUpdateEmployee")]
         public async Task<IActionResult> PartiuallyUpdateEmployeeAsync()
         {
             return Ok();
         }
 
-        [HttpDelete("{employeeId}")]
+        [HttpDelete("{employeeId}", Name = "DeleteEmployee")]
         public async Task<IActionResult> DeleteEmployeeAsync([FromRoute] Guid employeeId)
         {
             var foundEmployee = await _employeeRepository.GetFirstByConditionAsync(e => e.Id == employeeId);
