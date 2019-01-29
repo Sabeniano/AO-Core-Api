@@ -5,6 +5,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AoApi.Controllers
@@ -32,7 +33,7 @@ namespace AoApi.Controllers
 
             var foundJob = await _jobRepository.GetJobByEmployeeId(employeeId); // make get ALL jobs
 
-            var jobToReturn = Mapper.Map<JobDto>(foundJob);
+            var jobToReturn = Mapper.Map<IEnumerable<JobDto>>(foundJob);
 
             return Ok(jobToReturn);
         }
@@ -52,7 +53,9 @@ namespace AoApi.Controllers
         //        return NotFound();
         //    }
 
-        //    return Ok(foundJob);
+        //    var jobToReturn = Mapper.Map<JobDto>(foundJob);
+
+        //    return Ok(jobToReturn);
         //}
     }
 }
