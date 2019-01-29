@@ -84,6 +84,8 @@ namespace AoApi.Controllers
 
             _jobRepository.Update(foundJob);
 
+            await _jobRepository.SaveChangesAsync();
+
             // check if it returns "old" job before update. Else find and return?
             return Ok(foundJob);
 
@@ -144,6 +146,9 @@ namespace AoApi.Controllers
                 return NotFound();
 
             _jobRepository.Delete(foundJob);
+
+            await _jobRepository.SaveChangesAsync();
+
             return Ok();
         }
     }
