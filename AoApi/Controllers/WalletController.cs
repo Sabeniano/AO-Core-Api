@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace AoApi.Controllers
 {
-    [Route("api/employees/{employeeId}/wallets")]
+    [Route("api/employees/{employeeId}/wallet")]
     [ApiController]
     public class WalletController : ControllerBase
     {
