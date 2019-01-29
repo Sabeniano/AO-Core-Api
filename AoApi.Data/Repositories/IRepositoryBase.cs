@@ -7,6 +7,8 @@ namespace AoApi.Data.Repositories
 {
     public interface IRepositoryBase<T>
     {
+        Task<bool> EmployeeExists(Guid id);
+        Task<bool> EntityExists<T>(Expression<Func<T, bool>> expression) where T : class;
         Task<IEnumerable<T>> GetAllAsync();
         Task<T> GetFirstByConditionAsync(Expression<Func<T, bool>> expression);
         Task<IEnumerable<T>> GetAllByConditionAsync(Expression<Func<T, bool>> expression);

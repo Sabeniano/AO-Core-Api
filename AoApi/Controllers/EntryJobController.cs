@@ -5,46 +5,35 @@ using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AoApi.Controllers
 {
-    [Route("api/employees/{employeeId}/job")]
+    [Route("api/jobs")]
     [ApiController]
-    public class JobController : ControllerBase
+    public class EntryJobController : ControllerBase
     {
         private readonly IJobRepository _jobRepository;
 
-        public JobController(IJobRepository jobRepository)
+        public EntryJobController(IJobRepository jobRepository)
         {
             _jobRepository = jobRepository;
         }
 
-
-        // make is possible to have more than one job??
-        //[HttpGet]
-        //public async Task<IActionResult> GetAllJobsAsync([FromRoute] Guid employeeId)
-        //{
-        //    if (!await _jobRepository.EntityExists<Employee>(e => e.Id == employeeId))
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var foundJob = await _jobRepository.GetJobByEmployeeId(employeeId); // make get ALL jobs
-
-        //    var jobToReturn = Mapper.Map<JobDto>(foundJob);
-
-        //    return Ok(jobToReturn);
-        //}
-
-        [HttpGet("{jobId}")]
-        public async Task<IActionResult> GetOneJobAsync([FromRoute] Guid employeeId,[FromRoute] Guid jobId)
+        [HttpGet]
+        public async Task<IActionResult> GetAllJobsAsync()
         {
-            if (!await _jobRepository.EntityExists<Employee>(e => e.Id == employeeId))
-            {
-                return NotFound();
-            }
+            var foundJob = await _jobRepository.GetAllAsync();
 
+            var jobToReturn = Mapper.Map<IEnumerable<JobDto>>(foundJob);
+
+            return Ok(jobToReturn);
+        }
+
+        [HttpGet("{jobId}", Name = "GetJob")]
+        public async Task<IActionResult> GetOneJobAsync([FromRoute] Guid jobId)
+        {
             var foundJob = await _jobRepository.GetFirstByConditionAsync(j => j.Id == jobId);
 
             if (foundJob == null)
@@ -52,7 +41,9 @@ namespace AoApi.Controllers
                 return NotFound();
             }
 
-            return Ok(foundJob);
+            var jobToReturn = Mapper.Map<JobDto>(foundJob);
+
+            return Ok(jobToReturn);
         }
 
         [HttpPost]
