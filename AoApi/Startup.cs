@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using AoApi.Data;
 using AoApi.Data.Models;
+using AoApi.Data.Repositories;
+using AoApi.Services.PropertyMappingServices;
 using AoApi.Services;
 using AoApi.Services.Data.DtoModels.EmployeeDtos;
 using AoApi.Services.Data.DtoModels.JobDtos;
@@ -61,6 +63,11 @@ namespace AoApi
             var connectionString = Configuration["ConnectionStrings:AoDB"];
             services.AddDbContext<AOContext>(x => x.UseSqlServer(connectionString, y => y.MigrationsAssembly("AoApi.Data")));
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            services.AddScoped<IJobRepository, JobRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<IScheduleRepository, ScheduleRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IWorkhoursRepository, WorkhoursRepository>();
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 

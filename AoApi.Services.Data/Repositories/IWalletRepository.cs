@@ -3,7 +3,7 @@ using AoApi.Data.Repositories;
 
 namespace AoApi.Services.Data.Repositories
 {
-    public interface IUserRepository : IRepositoryBase<User>
+    public interface IWalletRepository : IRepositoryBase<Wallet>
     {
     }
 }

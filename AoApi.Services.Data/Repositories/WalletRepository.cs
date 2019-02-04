@@ -4,9 +4,9 @@ using AoApi.Data.Repositories;
 
 namespace AoApi.Services.Data.Repositories
 {
-    public class ScheduleRepository : RepositoryBase<Schedule>, IScheduleRepository
+    public class WalletRepository : RepositoryBase<Wallet>, IWalletRepository
     {
-        public ScheduleRepository(AOContext context) : base(context)
+        public WalletRepository(AOContext context) : base(context)
         {
         }
     }
