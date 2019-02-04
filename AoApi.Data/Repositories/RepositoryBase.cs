@@ -16,6 +16,18 @@ namespace AoApi.Data.Repositories
             _context = context;
         }
 
+        public async Task<bool> EmployeeExists(Guid id)
+        {
+            var foundEmployee = await _context.Employees.Where(e => e.Id == id).FirstOrDefaultAsync();
+            return foundEmployee == null ? false : true;
+        }
+
+        public async Task<bool> EntityExists<T>(Expression<Func<T, bool>> expression) where T : class
+        {
+            var foundEntity = await _context.Set<T>().Where(expression).FirstOrDefaultAsync();
+            return foundEntity == null ? false : true;
+        }
+
         public void Create(T entity)
         {
             _context.Set<T>().Add(entity);
@@ -31,9 +43,14 @@ namespace AoApi.Data.Repositories
             return await _context.Set<T>().ToListAsync();
         }
 
-        public virtual async Task<T> GetByConditionAsync(Expression<Func<T, bool>> expression)
+        public virtual async Task<T> GetFirstByConditionAsync(Expression<Func<T, bool>> expression)
         {
             return await _context.Set<T>().Where(expression).FirstOrDefaultAsync();
+        }
+
+        public virtual async Task<IEnumerable<T>> GetAllByConditionAsync(Expression<Func<T, bool>> expression)
+        {
+            return await _context.Set<T>().Where(expression).ToListAsync();
         }
 
         public async Task<bool> SaveChangesAsync()

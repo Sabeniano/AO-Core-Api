@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AoApi.Data\AoApi.Data.csproj" />
+    <ProjectReference Include="..\AoApi.Services.Data\AoApi.Services.Data.csproj" />
   </ItemGroup>
 
 </Project>
