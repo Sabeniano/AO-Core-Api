@@ -12,6 +12,8 @@ using AoApi.Services;
 using Newtonsoft.Json;
 using System.Dynamic;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Http;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace AoApi.Controllers
 {
@@ -34,6 +36,12 @@ namespace AoApi.Controllers
             _controllerHelper = controllerHelper;
         }
 
+        [SwaggerOperation(
+            Summary = "Retrieve all employees",
+            Description = "Retrieves all the employees",
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas"})]
+        [SwaggerResponse(200, "All employees were returned", typeof(EmployeeDto[]))]
+        [SwaggerResponse(400, "the requested field does not exist")]
         [HttpGet(Name = "GetEmployees")]
         public async Task<IActionResult> GetAllEmployeesAsync([FromQuery] RequestParameters request, [FromHeader(Name = "accept")] string mediaType)
         {
@@ -82,8 +90,18 @@ namespace AoApi.Controllers
             return Ok(shapedEmployees);
         }
 
+        [SwaggerOperation(
+            Summary = "Retrieve one employee",
+            Description = "Retrieves one employee",
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(200, "Found employee returned", typeof(EmployeeDto))]
+        [SwaggerResponse(400, "The requested field does not exist")]
+        [SwaggerResponse(404, "No Employee was found")]
         [HttpGet("{employeeId}", Name = "GetEmployee")]
-        public async Task<IActionResult> GetOneEmployeeAsync([FromRoute] Guid employeeId, [FromQuery] string fields, [FromHeader(Name = "accept")] string mediaType)
+        public async Task<IActionResult> GetOneEmployeeAsync(
+            [FromRoute, SwaggerParameter("Id of the employee to find", Required = true)] Guid employeeId,
+            [FromQuery, SwaggerParameter("Request which fields you want returned")] string fields,
+            [FromHeader(Name = "accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
             var foundEmployee = await _employeeRepository.GetFirstByConditionAsync(e => e.Id == employeeId);
 
@@ -105,9 +123,18 @@ namespace AoApi.Controllers
 
             return Ok(shapedEmployee);
         }
-
+        [SwaggerOperation(
+            Summary = "Create an employee",
+            Description = "Creates an employee",
+            Consumes = new string[] { "application/json" },
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(201, "Created employee returned", typeof(EmployeeDto))]
+        [SwaggerResponse(500, "Failed to create an employee")]
         [HttpPost]
-        public async Task<IActionResult> CreateEmployeeAsync(EmployeeCreateDto employeeToCreate, [FromQuery] string fields, [FromHeader(Name = "accept")] string mediaType)
+        public async Task<IActionResult> CreateEmployeeAsync(
+            [FromBody, SwaggerParameter("Employee to create", Required = true)] EmployeeCreateDto employeeToCreate,
+            [FromQuery, SwaggerParameter("Request which fields you want returned")] string fields,
+            [FromHeader(Name = "accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
             var employeeEntity = Mapper.Map<Employee>(employeeToCreate);
 
@@ -119,6 +146,7 @@ namespace AoApi.Controllers
             {
                 //  change to logging
                 throw new Exception("Failed to save employee");
+                //  consider to return an error to notify user of failed save
             }
 
             var employeeFromRepo = await _employeeRepository.GetFirstByConditionAsync(x => x.Id == employeeEntity.Id);
@@ -142,23 +170,34 @@ namespace AoApi.Controllers
             return CreatedAtRoute("GetEmployee", new { employeeId = employeeToReturn.Id }, employeeToReturn);
         }
 
+        [SwaggerOperation(
+            Summary = "update an employee",
+            Description = "updates an employee, or creates one if none exists(upserting)",
+            Consumes = new string[] { "application/json" },
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(201, "Created employee returned", typeof(EmployeeDto))]
+        [SwaggerResponse(204, "Successfully updated employee")]
+        [SwaggerResponse(500, "Failed to create or update an employee")]
         [HttpPut("{employeeId}", Name = "UpdateEmployee")]
-        public async Task<IActionResult> UpdateEmployeeAsync([FromRoute] Guid id, [FromBody]  EmployeeUpdateDto employeeToUpdate, [FromHeader(Name = "accept")] string mediaType)
+        public async Task<IActionResult> UpdateEmployeeAsync(
+            [FromRoute, SwaggerParameter("Id of the employee to update", Required = true)] Guid employeeId,
+            [FromBody, SwaggerParameter("object with the updates", Required = true)]  EmployeeUpdateDto employeeToUpdate,
+            [FromHeader(Name = "accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
-            var employeeFromRepo = await _employeeRepository.GetFirstByConditionAsync(x => x.Id == id);
+            var employeeFromRepo = await _employeeRepository.GetFirstByConditionAsync(x => x.Id == employeeId);
 
             //  upserting if doesnt exist
             if (employeeFromRepo == null)
             {
                 var employeeEntity = Mapper.Map<Employee>(employeeToUpdate);
-                employeeEntity.Id = id;
+                employeeEntity.Id = employeeId;
 
                 _employeeRepository.Create(employeeEntity);
 
                 if (!await _employeeRepository.SaveChangesAsync())
                     throw new Exception("Failed to save on upserting");
 
-                var employeeToReturn = Mapper.Map<EmployeeDto>(await _employeeRepository.GetFirstByConditionAsync(h => h.Id == id));
+                var employeeToReturn = Mapper.Map<EmployeeDto>(await _employeeRepository.GetFirstByConditionAsync(h => h.Id == employeeId));
 
                 if (mediaType == "application/vnd.AO.json+hateoas")
                 {
@@ -180,12 +219,21 @@ namespace AoApi.Controllers
             return NoContent();
         }
 
+        [SwaggerOperation(
+            Summary = "partually update an using jsonpatch employee",
+            Description = "partially updates an employee, or creates one if none exists(upserting)",
+            Consumes = new string[] { "application/json" },
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(201, "Created employee returned", typeof(EmployeeDto))]
+        [SwaggerResponse(204, "Successfully updated employee")]
+        [SwaggerResponse(500, "Failed to create or update an employee")]
         [HttpPatch("{employeeId}", Name = "PartiallyUpdateEmployee")]
         public async Task<IActionResult> PartiuallyUpdateEmployeeAsync(
-            [FromRoute] Guid id, [FromBody] JsonPatchDocument<EmployeeUpdateDto> jsonPatchDocument,
-            [FromHeader(Name = "accept")] string mediaType)
+            [FromRoute, SwaggerParameter("Id of the employee to partially update", Required = true)] Guid employeeId,
+            [FromBody, SwaggerParameter("json patch operations to perform", Required = true)] JsonPatchDocument<EmployeeUpdateDto> jsonPatchDocument,
+            [FromHeader(Name = "accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
-            var employeeFromRepo = await _employeeRepository.GetFirstByConditionAsync(x => x.Id == id);
+            var employeeFromRepo = await _employeeRepository.GetFirstByConditionAsync(x => x.Id == employeeId);
 
             //  upserting if doesnt exist
             if (employeeFromRepo == null)
@@ -199,7 +247,7 @@ namespace AoApi.Controllers
 
                 var employeeToAdd = Mapper.Map<Employee>(employee);
 
-                employeeToAdd.Id = id;
+                employeeToAdd.Id = employeeId;
 
                 _employeeRepository.Create(employeeToAdd);
 
@@ -236,8 +284,13 @@ namespace AoApi.Controllers
             return NoContent();
         }
 
+        [SwaggerOperation(
+            Summary = "Delete an existing employee",
+            Description = "Deletes an existing employee")]
+        [SwaggerResponse(200, "Successfully deleted an employee")]
+        [SwaggerResponse(404, "Employee not found")]
         [HttpDelete("{employeeId}", Name = "DeleteEmployee")]
-        public async Task<IActionResult> DeleteEmployeeAsync([FromRoute] Guid employeeId)
+        public async Task<IActionResult> DeleteEmployeeAsync([FromRoute, SwaggerParameter("Id of employee to delete", Required = true)] Guid employeeId)
         {
             var foundEmployee = await _employeeRepository.GetFirstByConditionAsync(e => e.Id == employeeId);
 
