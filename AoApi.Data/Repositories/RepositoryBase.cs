@@ -22,9 +22,9 @@ namespace AoApi.Data.Repositories
             return foundEmployee == null ? false : true;
         }
 
-        public async Task<bool> EntityExists<T>(Expression<Func<T, bool>> expression) where T : class
+        public async Task<bool> EntityExists<TT>(Expression<Func<TT, bool>> expression) where TT : class
         {
-            var foundEntity = await _context.Set<T>().Where(expression).FirstOrDefaultAsync();
+            var foundEntity = await _context.Set<TT>().Where(expression).FirstOrDefaultAsync();
             return foundEntity == null ? false : true;
         }
 
