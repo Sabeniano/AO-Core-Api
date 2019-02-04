@@ -32,8 +32,8 @@ ___This project is mainly made for us to gain knowlegde in the various technolog
 ## Error Handling
 
 ## Versions
-As of now the API should be v2, the version changes when major changes happens.
-This API is derived from an older [API](https://github.com/BalenD/AO-Api-Prototype-Project) of ours.
+* As of now the API should be v2, the version changes when major changes happens.
+* This API is derived from an older [API](https://github.com/BalenD/AO-Api-Prototype-Project) of ours.
 
 ## API endpoints
 #### User Resources
