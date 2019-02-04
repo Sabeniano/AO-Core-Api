@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using AoApi.Services;
 using Newtonsoft.Json;
 using System.Dynamic;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace AoApi.Controllers
 {
@@ -37,14 +38,10 @@ namespace AoApi.Controllers
         public async Task<IActionResult> GetAllEmployeesAsync([FromQuery] RequestParameters request, [FromHeader(Name = "accept")] string mediaType)
         {
             if (string.IsNullOrWhiteSpace(request.OrderBy))
-            {
                 request.OrderBy = "Name";
-            }
 
             if (!_typeHelperService.TypeHasProperties<EmployeeDtoForMultiple>(request.Fields))
-            {
                 return BadRequest();
-            }
 
             var pagedEmployeeList = await _employeeRepository.GetEmployeesAsync(
                 request.OrderBy, request.SearchQuery, request.PageNumber,
@@ -63,7 +60,7 @@ namespace AoApi.Controllers
                 var shapedAndLinkedEmployees = _controllerHelper.AddLinksToShapedObjects(shapedEmployees, "Employee", request.Fields);
 
                 var linkedResourceCollection = _controllerHelper.AddLinksToCollection(shapedAndLinkedEmployees, request, pagedEmployeeList.HasNext, pagedEmployeeList.HasPrevious, "Employee");
-
+                
                 if (request.IncludeMetadata)
                 {
                     ((IDictionary<string, object>)linkedResourceCollection).Add("metadata", paginationMetaData);
@@ -104,10 +101,8 @@ namespace AoApi.Controllers
             var shapedEmployee = employeeToReturn.ShapeData(fields);
 
             if (mediaType == "application/vnd.AO.json+hateoas")
-            {
                 ((IDictionary<string, object>)shapedEmployee).Add("links", _controllerHelper.CreateLinksForResource(foundEmployee.Id, fields, "Employee"));
-            }
-            
+
             return Ok(shapedEmployee);
         }
 
@@ -126,7 +121,7 @@ namespace AoApi.Controllers
                 throw new Exception("Failed to save employee");
             }
 
-            var employeeFromRepo = _employeeRepository.GetFirstByConditionAsync(x => x.Id == employeeEntity.Id);
+            var employeeFromRepo = await _employeeRepository.GetFirstByConditionAsync(x => x.Id == employeeEntity.Id);
 
             var employeeToReturn = Mapper.Map<EmployeeDto>(employeeFromRepo);
 
@@ -148,15 +143,97 @@ namespace AoApi.Controllers
         }
 
         [HttpPut("{employeeId}", Name = "UpdateEmployee")]
-        public async Task<IActionResult> UpdateEmployeeAsync()
+        public async Task<IActionResult> UpdateEmployeeAsync([FromRoute] Guid id, [FromBody]  EmployeeUpdateDto employeeToUpdate, [FromHeader(Name = "accept")] string mediaType)
         {
-            return Ok();
+            var employeeFromRepo = await _employeeRepository.GetFirstByConditionAsync(x => x.Id == id);
+
+            //  upserting if doesnt exist
+            if (employeeFromRepo == null)
+            {
+                var employeeEntity = Mapper.Map<Employee>(employeeToUpdate);
+                employeeEntity.Id = id;
+
+                _employeeRepository.Create(employeeEntity);
+
+                if (!await _employeeRepository.SaveChangesAsync())
+                    throw new Exception("Failed to save on upserting");
+
+                var employeeToReturn = Mapper.Map<EmployeeDto>(await _employeeRepository.GetFirstByConditionAsync(h => h.Id == id));
+
+                if (mediaType == "application/vnd.AO.json+hateoas")
+                {
+                    var shapedEmployee = _controllerHelper.ShapeAndAddLinkToObject(employeeToReturn, "Employee", null);
+                    return CreatedAtRoute("GetEmployee", new { employeeId = employeeToReturn.Id }, shapedEmployee);
+                }
+
+
+                return CreatedAtRoute("GetEmployee", new { employeeId = employeeToReturn.Id }, employeeToReturn);
+            }
+
+            Mapper.Map(employeeToUpdate, employeeFromRepo);
+
+            _employeeRepository.Update(employeeFromRepo);
+
+            if (!await _employeeRepository.SaveChangesAsync())
+                throw new Exception("Failed to save on updating");
+
+            return NoContent();
         }
 
         [HttpPatch("{employeeId}", Name = "PartiallyUpdateEmployee")]
-        public async Task<IActionResult> PartiuallyUpdateEmployeeAsync()
+        public async Task<IActionResult> PartiuallyUpdateEmployeeAsync(
+            [FromRoute] Guid id, [FromBody] JsonPatchDocument<EmployeeUpdateDto> jsonPatchDocument,
+            [FromHeader(Name = "accept")] string mediaType)
         {
-            return Ok();
+            var employeeFromRepo = await _employeeRepository.GetFirstByConditionAsync(x => x.Id == id);
+
+            //  upserting if doesnt exist
+            if (employeeFromRepo == null)
+            {
+                var employee = new EmployeeUpdateDto();
+
+                jsonPatchDocument.ApplyTo(employee, ModelState);
+
+                if (!ModelState.IsValid)
+                    throw new Exception("invalid model state");
+
+                var employeeToAdd = Mapper.Map<Employee>(employee);
+
+                employeeToAdd.Id = id;
+
+                _employeeRepository.Create(employeeToAdd);
+
+
+                if (!await _employeeRepository.SaveChangesAsync())
+                    throw new Exception("Failed to save on upserting");
+
+                var employeeToReturn = Mapper.Map<EmployeeDto>(employeeToAdd);
+
+
+                if (mediaType == "application/vnd.AO.json+hateoas")
+                {
+                    var shapedEmployee = _controllerHelper.ShapeAndAddLinkToObject(employeeToReturn, "Employee", null);
+                    return CreatedAtRoute("GetEmployee", new { employeeId = employeeToReturn.Id }, shapedEmployee);
+                }
+
+                return CreatedAtRoute("GetEmployee", new { employeeId = employeeToReturn.Id }, employeeToReturn);
+            }
+
+            var employeeToPatch = Mapper.Map<EmployeeUpdateDto>(employeeFromRepo);
+
+            jsonPatchDocument.ApplyTo(employeeToPatch, ModelState);
+
+            if (!ModelState.IsValid)
+                throw new Exception("invalid model state");
+
+            Mapper.Map(employeeToPatch, employeeFromRepo);
+
+            _employeeRepository.Update(employeeFromRepo);
+
+            if (!await _employeeRepository.SaveChangesAsync())
+                throw new Exception("Failed to save on upserting");
+
+            return NoContent();
         }
 
         [HttpDelete("{employeeId}", Name = "DeleteEmployee")]
@@ -168,6 +245,10 @@ namespace AoApi.Controllers
                 return NotFound();
 
             _employeeRepository.Delete(foundEmployee);
+
+            if (!await _employeeRepository.SaveChangesAsync())
+                throw new Exception("Failed to save on deleting");
+
             return Ok();
         }
     }

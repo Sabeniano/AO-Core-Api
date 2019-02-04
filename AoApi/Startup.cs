@@ -164,6 +164,7 @@ namespace AoApi
                 config.CreateMap<Workhours, WorkhoursUpdateDto>();
             });
 
+            app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.EnableDeepLinking();
