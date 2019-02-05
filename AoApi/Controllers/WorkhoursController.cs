@@ -1,4 +1,5 @@
 ﻿using AoApi.Data.Models;
+using AoApi.Services;
 using AoApi.Services.Data.DtoModels.WorkhoursDtos;
 using AoApi.Services.Data.Repositories;
 using AutoMapper;
@@ -7,6 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Swashbuckle.AspNetCore.Annotations;
+using Newtonsoft.Json;
+using AoApi.Helpers;
 
 namespace AoApi.Controllers
 {
@@ -15,14 +19,28 @@ namespace AoApi.Controllers
     public class WorkhoursController : ControllerBase
     {
         private readonly IWorkhoursRepository _workhoursRepository;
+        private readonly IControllerHelper _controllerHelper;
 
-        public WorkhoursController(IWorkhoursRepository workhoursRepository)
+        public WorkhoursController(
+            IWorkhoursRepository workhoursRepository,
+            IControllerHelper controllerHelper
+            )
         {
             _workhoursRepository = workhoursRepository;
+            _controllerHelper = controllerHelper;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllWorkhourssAsync([FromRoute] Guid employeeId)
+        [SwaggerOperation(
+            Summary = "Retrieve all workhours",
+            Description = "Retrieves all the workhours of one employee",
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(200, "All workhours were returned", typeof(WorkhoursDto[]))]
+        [SwaggerResponse(400, "The requested field does not exist")]
+        [HttpGet(Name = "GetWorkhours")]
+        public async Task<IActionResult> GetAllWorkhourssAsync(
+            [FromRoute] Guid employeeId,
+            [FromQuery] RequestParameters request,
+            [FromHeader(Name = "accept")] string mediaType)
         {
             if (!await _workhoursRepository.EntityExists<Employee>(e => e.Id == employeeId))
             {
@@ -33,11 +51,32 @@ namespace AoApi.Controllers
 
             var workhoursToReturn = Mapper.Map<IEnumerable<WorkhoursDto>>(foundWorkhours);
 
-            return Ok(workhoursToReturn);
+            var shapedWorkhours = workhoursToReturn.ShapeData(request.Fields);
+
+            if (mediaType == "application/vnd.AO.json+hateoas")
+            {
+                var shapedAndLinkedWorkhours = _controllerHelper.AddLinksToShapedObjects(shapedWorkhours, "Workhours", request.Fields);
+
+                var linkedResourceCollection = _controllerHelper.AddLinksToCollection(shapedAndLinkedWorkhours, request, false, false, "Workhours");
+
+                return Ok(linkedResourceCollection);
+            }
+            return Ok(shapedWorkhours);
         }
 
-        [HttpGet("{workhoursId}")]
-        public async Task<IActionResult> GetOneWorkhoursAsync([FromRoute] Guid employeeId, [FromRoute] Guid workhoursId)
+        [SwaggerOperation(
+            Summary = "Retrieve one workhour",
+            Description = "Retrieves workhours of one employee",
+            Produces = new string[] { "application/jason", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(200, "Found workhour returned", typeof(WorkhoursDto))]
+        [SwaggerResponse(400, "The requested field does not exist")]
+        [SwaggerResponse(404, "No Workhour was found")]
+        [HttpGet("{workhoursId}", Name = "GetWorkhour")]
+        public async Task<IActionResult> GetOneWorkhoursAsync(
+            [FromRoute, SwaggerParameter("Id of employee to find", Required = true)] Guid employeeId,
+            [FromRoute, SwaggerParameter("Id of workhours to find", Required = true)] Guid workhoursId,
+            [FromQuery, SwaggerParameter("Request which fields you want returned")] string fields,
+            [FromHeader(Name = "accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
             if (!await _workhoursRepository.EntityExists<Employee>(e => e.Id == employeeId))
             {
@@ -53,26 +92,73 @@ namespace AoApi.Controllers
 
             var workhoursToReturn = Mapper.Map<WorkhoursDto>(foundWorkhours);
 
-            return Ok(workhoursToReturn);
-        }
+            var shapedWorkhours = workhoursToReturn.ShapeData(fields);
 
+            if (mediaType == "application/vnd.AO.json+hateoas")
+                ((IDictionary<string, object>)shapedWorkhours).Add("links", _controllerHelper.CreateLinksForResource(foundWorkhours.Id, fields, "Workhours"));
+
+            return Ok(shapedWorkhours);
+        }
+        [SwaggerOperation(
+            Summary = "Create workhours",
+            Description = "Creates workhours for employee",
+            Consumes = new string[] { "application/json" },
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(201, "Created workhours returned", typeof(WorkhoursDto))]
+        [SwaggerResponse(500, "Failed to create workhours")]
         [HttpPost]
-        public async Task<IActionResult> CreateWorkhoursAsync([FromBody] WorkhoursCreateDto workhoursToCreate)
+        public async Task<IActionResult> CreateWorkhoursAsync(
+            [FromBody, SwaggerParameter("Workhours to create", Required = true)] WorkhoursCreateDto workhoursToCreate,
+            [FromQuery, SwaggerParameter("Request which fields you want returned")] string fields,
+            [FromHeader(Name = "accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
             var workhoursToAdd = Mapper.Map<Workhours>(workhoursToCreate);
+
             workhoursToAdd.Id = Guid.NewGuid();
 
             _workhoursRepository.Create(workhoursToAdd);
 
-            await _workhoursRepository.SaveChangesAsync();
+            if (!await _workhoursRepository.SaveChangesAsync())
+            {
+                //  change to logging
+                throw new Exception("Failed to save workhours");
+                //  consider to return an error to notify user of failed save
+            }
 
             var foundWorkhours = await _workhoursRepository.GetFirstByConditionAsync(j => j.Id == workhoursToAdd.Id);
 
-            return Ok();
+            var workhoursToReturn = Mapper.Map<WorkhoursDto>(foundWorkhours);
+
+            if (mediaType == "application/vnd.AO.json+hateoas")
+            {
+                var shapedWorkhours = _controllerHelper.ShapeAndAddLinkToObject(workhoursToReturn, "Workhours", fields);
+
+                return CreatedAtRoute("GetWorkhour", new { workhoursId = workhoursToReturn.Id }, shapedWorkhours);
+            }
+
+            if (!string.IsNullOrWhiteSpace(fields))
+            {
+                var shapedWorkhours = workhoursToReturn.ShapeData(fields);
+
+                return CreatedAtRoute("GetWorkhour", new { workhoursId = workhoursToReturn.Id }, shapedWorkhours);
+            }
+
+            return CreatedAtRoute("GetWorkhour", new { workhoursId = workhoursToReturn.Id }, workhoursToReturn);
         }
 
-        [HttpPut("{workhoursId}")]
-        public async Task<IActionResult> UpdateWorkhoursAsync([FromRoute] Guid workhoursId, [FromBody] WorkhoursUpdateDto workhoursToUpdate)
+        [SwaggerOperation(
+            Summary = "Update workhours",
+            Description = "Updates workhours for employee, or creates if none exists(upserting)",
+            Consumes = new string[] { "application/json" },
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(201, "Created workhours returned", typeof(WorkhoursDto))]
+        [SwaggerResponse(204, "Succesfully updated workhours")]
+        [SwaggerResponse(500, "Failed to create or update workhours")]
+        [HttpPut("{workhoursId}", Name = "UpdateWorkhours")]
+        public async Task<IActionResult> UpdateWorkhoursAsync(
+            [FromRoute, SwaggerParameter("Id of workhours to update", Required = true)] Guid workhoursId,
+            [FromBody, SwaggerParameter("Object with the updates", Required = true)] WorkhoursUpdateDto workhoursToUpdate,
+            [FromHeader(Name = "accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
             var foundWorkhours = await _workhoursRepository.GetFirstByConditionAsync(j => j.Id == workhoursId);
 
@@ -83,10 +169,17 @@ namespace AoApi.Controllers
 
                 _workhoursRepository.Create(workhoursToAdd);
 
-                await _workhoursRepository.SaveChangesAsync();
+                if (!await _workhoursRepository.SaveChangesAsync())
+                    throw new Exception("Failed to save an upserting");
 
-                var workhoursToReturn = await _workhoursRepository.GetFirstByConditionAsync(j => j.Id == workhoursToAdd.Id);
+                var workhoursToReturn = Mapper.Map<WorkhoursDto>(await _workhoursRepository.GetFirstByConditionAsync(j => j.Id == workhoursId));
 
+                if (mediaType == "application/vnd.AO.json+hateoas")
+                {
+                    var shapedWorkhours = _controllerHelper.ShapeAndAddLinkToObject(workhoursToReturn, "Workhours", null);
+
+                    return CreatedAtRoute("GetWorkhours", new { workhoursId = workhoursToReturn.Id }, shapedWorkhours);
+                }
                 return CreatedAtRoute("GetWorkhours", new { workhoursId = workhoursToReturn.Id }, workhoursToReturn);
             }
 
@@ -94,7 +187,8 @@ namespace AoApi.Controllers
 
             _workhoursRepository.Update(foundWorkhours);
 
-            await _workhoursRepository.SaveChangesAsync();
+            if (!await _workhoursRepository.SaveChangesAsync())
+                throw new Exception("Failed to save on upserting");
 
             // check if it returns "old" workhours before update. Else find and return?
             return Ok(foundWorkhours);
@@ -102,44 +196,67 @@ namespace AoApi.Controllers
             //return NoContent();
         }
 
-        [HttpPatch("{workhoursId}")]
-        public async Task<IActionResult> PartialUpdateWorkhoursAsync([FromRoute] Guid workhoursId, [FromBody] JsonPatchDocument<WorkhoursUpdateDto> workhoursToPartialUpdate)
+        [SwaggerOperation(
+            Summary = "Partially update using jsonpatch",
+            Description = "Partially updates workhours for employee, or creates if none exists(upserting)",
+            Consumes = new string[] { "application/json" },
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(201, "Created workhours returned", typeof(WorkhoursDto))]
+        [SwaggerResponse(204, "Succesfully updated workhours")]
+        [SwaggerResponse(500, "Failed to create or update workhours")]
+        [HttpPatch("{workhoursId}", Name = "PartiallyUpdateWorkhours")]
+        public async Task<IActionResult> PartialUpdateWorkhoursAsync(
+            [FromRoute, SwaggerParameter("Id of workhours to partially update", Required = true)] Guid workhoursId,
+            [FromBody, SwaggerParameter("Json patch operations to perform", Required = true)] JsonPatchDocument<WorkhoursUpdateDto> jsonPatchDocument,
+            [FromHeader(Name = "accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
-            if (workhoursToPartialUpdate == null)
-                return BadRequest();
-
             var foundWorkhours = await _workhoursRepository.GetFirstByConditionAsync(j => j.Id == workhoursId);
 
             if (foundWorkhours == null)
             {
                 var workhoursToCreate = new WorkhoursUpdateDto();
 
-                // check if necessary
-                workhoursToPartialUpdate.ApplyTo(workhoursToCreate, ModelState);
+                jsonPatchDocument.ApplyTo(workhoursToCreate, ModelState);
+
+                if (!ModelState.IsValid)
+                    throw new Exception("Invalid model state");
 
                 var workhoursToAdd = Mapper.Map<Workhours>(workhoursToCreate);
+
                 workhoursToAdd.Id = Guid.NewGuid();
 
                 _workhoursRepository.Create(workhoursToAdd);
 
-                await _workhoursRepository.SaveChangesAsync();
+                if (!await _workhoursRepository.SaveChangesAsync())
+                    throw new Exception("Failed to save on upserting");
 
-                var workhoursToReturn = await _workhoursRepository.GetFirstByConditionAsync(j => j.Id == workhoursToAdd.Id);
+                //var workhoursToReturn = await _workhoursRepository.GetFirstByConditionAsync(j => j.Id == workhoursToAdd.Id);
+                var workhoursToReturn = Mapper.Map<WorkhoursDto>(workhoursToAdd);
 
+                if (mediaType == "application/vnd.AO.json+hateoas")
+                {
+                    var shapedWorkhours = _controllerHelper.ShapeAndAddLinkToObject(workhoursToReturn, "Workhours", null);
+
+                    return CreatedAtRoute("GetWorkhours", new { workhoursId = workhoursToReturn.Id }, shapedWorkhours);
+                }
                 return CreatedAtRoute("GetWorkhours", new { workhoursId = workhoursToReturn.Id }, workhoursToReturn);
             }
             // why map back and fourth?
             var workhoursToPatch = Mapper.Map<WorkhoursUpdateDto>(foundWorkhours);
 
             // check if necessary
-            workhoursToPartialUpdate.ApplyTo(workhoursToPatch, ModelState);
+            jsonPatchDocument.ApplyTo(workhoursToPatch, ModelState);
+
+            if (!ModelState.IsValid)
+                throw new Exception("Invalid model state");
 
             // why map back and fourth?
             Mapper.Map(workhoursToPatch, foundWorkhours);
 
             _workhoursRepository.Update(foundWorkhours);
 
-            await _workhoursRepository.SaveChangesAsync();
+            if (!await _workhoursRepository.SaveChangesAsync())
+                throw new Exception("Failed to save on upserting");
 
             // check if it returns "old" workhours before update. Else find and return?
             return Ok(foundWorkhours);
@@ -147,6 +264,7 @@ namespace AoApi.Controllers
             //return NoContent();
         }
 
+        // ER NÅET HER
         [HttpDelete("{workhoursId}")]
         public async Task<IActionResult> DeleteWorkhoursAsync([FromRoute] Guid workhoursId)
         {
