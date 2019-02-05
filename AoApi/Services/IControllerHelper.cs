@@ -13,6 +13,7 @@ namespace AoApi.Services
         PaginationMetaDataObject CreatePaginationMetadataObject<T>(PagedList<T> pagedlist, RequestParameters requestParameters, string routeName);
         IEnumerable<IDictionary<string, object>> AddLinksToShapedObjects<T>(IEnumerable<T> objs, string resourceName, string fields);
         ExpandoObject AddLinksToCollection(IEnumerable<IDictionary<string, object>> collection, RequestParameters requestParameters, bool hasNext, bool hasPrevious, string resourceName);
+        ExpandoObject AddLinksToCollection(IEnumerable<IDictionary<string, object>> collection, string resourceName, object value);
         IEnumerable<LinksObject> CreateLinksForResource(Guid id, string fields, string resourceName);
     }
 }
