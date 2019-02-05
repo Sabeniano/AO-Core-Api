@@ -110,11 +110,8 @@ namespace AoApi.Controllers
 
             var employeeToReturn = Mapper.Map<EmployeeDto>(foundEmployee);
 
-            if (!string.IsNullOrWhiteSpace(fields))
-            {
-                if (!_typeHelperService.TypeHasProperties<EmployeeDto>(fields))
-                    return BadRequest();
-            }
+            if (!string.IsNullOrWhiteSpace(fields) && !_typeHelperService.TypeHasProperties<EmployeeDto>(fields))
+                return BadRequest();
 
             var shapedEmployee = employeeToReturn.ShapeData(fields);
 
@@ -123,6 +120,7 @@ namespace AoApi.Controllers
 
             return Ok(shapedEmployee);
         }
+
         [SwaggerOperation(
             Summary = "Create an employee",
             Description = "Creates an employee",
@@ -255,7 +253,7 @@ namespace AoApi.Controllers
                 if (!await _employeeRepository.SaveChangesAsync())
                     throw new Exception("Failed to save on upserting");
 
-                var employeeToReturn = Mapper.Map<EmployeeDto>(employeeToAdd);
+                var employeeToReturn = Mapper.Map<EmployeeDto>(await _employeeRepository.GetFirstByConditionAsync(k => k.Id == employeeId));
 
 
                 if (mediaType == "application/vnd.AO.json+hateoas")
@@ -279,7 +277,7 @@ namespace AoApi.Controllers
             _employeeRepository.Update(employeeFromRepo);
 
             if (!await _employeeRepository.SaveChangesAsync())
-                throw new Exception("Failed to save on upserting");
+                throw new Exception("Failed to save on updating");
 
             return NoContent();
         }
