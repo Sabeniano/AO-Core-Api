@@ -23,8 +23,7 @@ namespace AoApi.Controllers
 
         public WorkhoursController(
             IWorkhoursRepository workhoursRepository,
-            IControllerHelper controllerHelper
-            )
+            IControllerHelper controllerHelper)
         {
             _workhoursRepository = workhoursRepository;
             _controllerHelper = controllerHelper;
@@ -190,10 +189,7 @@ namespace AoApi.Controllers
             if (!await _workhoursRepository.SaveChangesAsync())
                 throw new Exception("Failed to save on upserting");
 
-            // check if it returns "old" workhours before update. Else find and return?
-            return Ok(foundWorkhours);
-
-            //return NoContent();
+            return NoContent();
         }
 
         [SwaggerOperation(
@@ -258,15 +254,17 @@ namespace AoApi.Controllers
             if (!await _workhoursRepository.SaveChangesAsync())
                 throw new Exception("Failed to save on upserting");
 
-            // check if it returns "old" workhours before update. Else find and return?
-            return Ok(foundWorkhours);
-
-            //return NoContent();
+            return NoContent();
         }
 
-        // ER NÅET HER
-        [HttpDelete("{workhoursId}")]
-        public async Task<IActionResult> DeleteWorkhoursAsync([FromRoute] Guid workhoursId)
+        [SwaggerOperation(
+            Summary = "Delete existing workhours",
+            Description = "Deletes existing workhours of employee")]
+        [SwaggerResponse(200, "Successfully deleted workhours")]
+        [SwaggerResponse(404, "Workhours not found")]
+        [HttpDelete("{workhoursId}", Name = "DeleteWorkhours")]
+        public async Task<IActionResult> DeleteWorkhoursAsync(
+            [FromRoute, SwaggerParameter("Id of workhours to delete", Required = true)] Guid workhoursId)
         {
             var foundWorkhours = await _workhoursRepository.GetFirstByConditionAsync(j => j.Id == workhoursId);
 
@@ -275,7 +273,8 @@ namespace AoApi.Controllers
 
             _workhoursRepository.Delete(foundWorkhours);
 
-            await _workhoursRepository.SaveChangesAsync();
+            if (!await _workhoursRepository.SaveChangesAsync())
+                throw new Exception("Failed to save on deleting");
 
             return Ok();
         }

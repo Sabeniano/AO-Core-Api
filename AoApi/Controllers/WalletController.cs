@@ -1,4 +1,5 @@
 ﻿using AoApi.Data.Models;
+using AoApi.Services;
 using AoApi.Services.Data.DtoModels.WalletDtos;
 using AoApi.Services.Data.Repositories;
 using AutoMapper;
@@ -15,10 +16,14 @@ namespace AoApi.Controllers
     public class WalletController : ControllerBase
     {
         private readonly IWalletRepository _walletRepository;
+        private readonly IControllerHelper _controllerHelper;
 
-        public WalletController(IWalletRepository walletRepository)
+        public WalletController(
+            IWalletRepository walletRepository,
+            IControllerHelper controllerHelper)
         {
             _walletRepository = walletRepository;
+            _controllerHelper = controllerHelper;
         }
 
         [HttpGet]
