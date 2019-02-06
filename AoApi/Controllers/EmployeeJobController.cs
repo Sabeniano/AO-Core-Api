@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace AoApi.Controllers
 {
@@ -30,9 +31,18 @@ namespace AoApi.Controllers
             _controllerHelper = controllerHelper;
         }
 
+        [SwaggerOperation(
+            Summary = "Retrieve an employees job",
+            Description = "Retrieves an employees job by his/hers id",
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(200, "Employees job returned", typeof(JobDto[]))]
+        [SwaggerResponse(400, "The requested field does not exist")]
+        [SwaggerResponse(404, "The employee doesn't exist")]
         [HttpGet(Name = "GetEmplooyeJob")]
-        public async Task<IActionResult> GetAllEmployeeJobsAsync([FromRoute] Guid employeeId, [FromQuery] string fields,
-                                                                 [FromHeader(Name = "Accept")] string mediaType)
+        public async Task<IActionResult> GetEmployeeJobAsync(
+            [FromRoute, SwaggerParameter("Id of the employee to find job by", Required = true)] Guid employeeId,
+            [FromQuery, SwaggerParameter("Request which fields you want returned")] string fields,
+            [FromHeader(Name = "Accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
             if (!string.IsNullOrWhiteSpace(fields))
             {
@@ -80,9 +90,20 @@ namespace AoApi.Controllers
         //    return Ok(jobToReturn);
         //}
 
-        [HttpPost(Name = "PostEmployeeJob")]                                                       // change to what?
-        public async Task<IActionResult> PostEmployeeJobAsync([FromRoute] Guid employeeId, [FromBody] JobDto jobToGive,
-                                                              [FromHeader(Name = "Accept")] string mediaType, [FromQuery] string fields)
+        [SwaggerOperation(
+            Summary = "Assign a job to an employee",
+            Description = "Assigns a job to an employee, by assigning a job id to a employee id",
+            Consumes = new string[] { "application/json" },
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(201, "Assigned job returned", typeof(JobDto))]
+        [SwaggerResponse(404, "Either the employee or the job doesn't exist")]
+        [SwaggerResponse(500, "Failed to assign employee a job")]
+        [HttpPost(Name = "PostEmployeeJob")]
+        public async Task<IActionResult> PostEmployeeJobAsync(
+            [FromRoute, SwaggerParameter("Id of the employee to find job by", Required = true)] Guid employeeId, 
+            [FromBody, SwaggerParameter("Id of the job to assign", Required = true)] JobDto jobToGive, // change to just guid?
+            [FromQuery, SwaggerParameter("Request which fields you want returned")] string fields,
+            [FromHeader(Name = "Accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
             if (!await _jobRepository.EntityExists<Employee>(e => e.Id == employeeId))
                 return NotFound();
@@ -121,8 +142,18 @@ namespace AoApi.Controllers
 
         }
 
-        [HttpPut(Name = "PartiallyUpdateEmployeeJob")]                                               // change to what?
-        public async Task<IActionResult> UpdateEmployeeJobAsync([FromRoute] Guid employeeId, [FromBody] JobDto jobToChange)
+        [SwaggerOperation(
+            Summary = "Update a job on an employee",
+            Description = "Updates a job on an employee, by assigning a job id to a employee id",
+            Consumes = new string[] { "application/json" },
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(201, "Updated job returned", typeof(JobDto))]
+        [SwaggerResponse(404, "Either the employee or the job doesn't exist")]
+        [SwaggerResponse(500, "Failed to update employee job")]
+        [HttpPut(Name = "PartiallyUpdateEmployeeJob")]
+        public async Task<IActionResult> UpdateEmployeeJobAsync(
+            [FromRoute, SwaggerParameter("Id of the employee to find job by", Required = true)] Guid employeeId, 
+            [FromBody, SwaggerParameter("Id of the job to assign", Required = true)] JobDto jobToChange) // change to just guid?
         {
             if (!await _jobRepository.EntityExists<Employee>(e => e.Id == employeeId))
                 return NotFound();
