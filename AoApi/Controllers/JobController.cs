@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace AoApi.Controllers
 {
@@ -29,8 +30,16 @@ namespace AoApi.Controllers
             _controllerHelper = controllerHelper;
         }
 
+        [SwaggerOperation(
+            Summary = "Retrieve all jobs",
+            Description = "Retrieves all jobs",
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(200, "All jobs returned", typeof(JobDto[]))]
+        [SwaggerResponse(400, "The requested field does not exist")]
         [HttpGet(Name = "GetJobs")]
-        public async Task<IActionResult> GetAllJobsAsync([FromQuery] string fields, [FromHeader(Name = "Accept")] string mediaType)
+        public async Task<IActionResult> GetAllJobsAsync(
+            [FromQuery, SwaggerParameter("Request which fields you want returned")] string fields,
+            [FromHeader(Name = "Accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
             if (!string.IsNullOrWhiteSpace(fields))
             {
@@ -56,9 +65,17 @@ namespace AoApi.Controllers
             return Ok(shapedJobs);
         }
 
+        [SwaggerOperation(
+            Summary = "Retrieve a job",
+            Description = "Retrieves a job by its id",
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(200, "Job returned", typeof(JobDto))]
+        [SwaggerResponse(400, "The requested field does not exist")]
         [HttpGet("{jobId}", Name = "GetJob")]
-        public async Task<IActionResult> GetOneJobAsync([FromRoute] Guid jobId, [FromQuery] string fields,
-                                                        [FromHeader(Name = "Accept")] string mediaType)
+        public async Task<IActionResult> GetOneJobAsync(
+            [FromRoute, SwaggerParameter("Id of the job to receive")] Guid jobId,
+            [FromQuery, SwaggerParameter("Request which fields you want returned")] string fields,
+            [FromHeader(Name = "Accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
             if (!string.IsNullOrWhiteSpace(fields))
             {
@@ -86,9 +103,18 @@ namespace AoApi.Controllers
             return Ok(shapedEmployeeJob);
         }
 
+        [SwaggerOperation(
+            Summary = "Create a job",
+            Description = "Creates a job",
+            Consumes = new string[] { "application/json" },
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(201, "Created job returned", typeof(JobDto))]
+        [SwaggerResponse(500, "Failed to create job")]
         [HttpPost(Name = "PostJob")]
-        public async Task<IActionResult> CreateJobAsync([FromBody] JobCreateDto jobToCreate, [FromQuery] string fields,
-                                                        [FromHeader(Name = "Accept")] string mediaType)
+        public async Task<IActionResult> CreateJobAsync(
+            [FromBody, SwaggerParameter("Object with job to create", Required = true)] JobCreateDto jobToCreate,
+            [FromQuery, SwaggerParameter("Request which fields you want returned")] string fields,
+            [FromHeader(Name = "Accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
             var jobToAdd = Mapper.Map<Job>(jobToCreate);
             jobToAdd.Id = Guid.NewGuid();
@@ -120,8 +146,19 @@ namespace AoApi.Controllers
 
         }
 
+        [SwaggerOperation(
+            Summary = "Update a job",
+            Description = "Updates a job, or creates one if none exists(upserting)",
+            Consumes = new string[] { "application/json" },
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(201, "Created job returned", typeof(JobDto))]
+        [SwaggerResponse(204, "Successfully updated job")]
+        [SwaggerResponse(500, "Failed to create or update job")]
         [HttpPut("{jobId}", Name = "UpdateJob")]
-        public async Task<IActionResult> UpdateJobAsync([FromRoute] Guid jobId, [FromBody] JobUpdateDto jobToUpdate)
+        public async Task<IActionResult> UpdateJobAsync(
+            [FromRoute, SwaggerParameter("Id of the job to update", Required = true)] Guid jobId, 
+            [FromBody, SwaggerParameter("Object with updates to job", Required = true)] JobUpdateDto jobToUpdate,
+            [FromHeader(Name = "accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
             var foundJob = await _jobRepository.GetFirstByConditionAsync(j => j.Id == jobId);
 
@@ -135,6 +172,12 @@ namespace AoApi.Controllers
                 await _jobRepository.SaveChangesAsync();
 
                 var jobToReturn = await _jobRepository.GetFirstByConditionAsync(j => j.Id == jobToAdd.Id);
+
+                if (mediaType == "application/vnd.AO.json+hateoas")
+                {
+                    var shapedJob = _controllerHelper.ShapeAndAddLinkToObject(jobToReturn, "Job", null);
+                    return CreatedAtRoute("GetJob", new { jobId = jobToReturn.Id }, shapedJob);
+                }
 
                 return CreatedAtRoute("GetJob", new { jobId = jobToReturn.Id }, jobToReturn);
             }
@@ -151,8 +194,19 @@ namespace AoApi.Controllers
             return NoContent();
         }
 
+        [SwaggerOperation(
+            Summary = "Partially update a job using jsonpatch",
+            Description = "Partially updates a job, or creates one if none exists(upserting)",
+            Consumes = new string[] { "application/json" },
+            Produces = new string[] { "application/json", "application/vnd.AO.json+hateoas" })]
+        [SwaggerResponse(201, "Created job returned", typeof(JobDto))]
+        [SwaggerResponse(204, "Successfully updated job")]
+        [SwaggerResponse(500, "Failed to create or update job")]
         [HttpPatch("{jobId}", Name = "PartiallyUpdateJob")]
-        public async Task<IActionResult> PartialUpdateJobAsync([FromRoute] Guid jobId, [FromBody] JsonPatchDocument<JobUpdateDto> jobToPartialUpdate)
+        public async Task<IActionResult> PartialUpdateJobAsync(
+            [FromRoute, SwaggerParameter("Id of the job to partially update", Required = true)] Guid jobId, 
+            [FromBody, SwaggerParameter("Json patch operations to perform", Required = true)] JsonPatchDocument<JobUpdateDto> jobToPartialUpdate,
+            [FromHeader(Name = "accept"), SwaggerParameter("Request Hateoas")] string mediaType)
         {
             if (jobToPartialUpdate == null)
                 return BadRequest();
@@ -178,6 +232,12 @@ namespace AoApi.Controllers
 
                 var jobToReturn = await _jobRepository.GetFirstByConditionAsync(j => j.Id == jobToAdd.Id);
 
+                if (mediaType == "application/vnd.AO.json+hateoas")
+                {
+                    var shapedJob = _controllerHelper.ShapeAndAddLinkToObject(jobToReturn, "Job", null);
+                    return CreatedAtRoute("GetJob", new { jobId = jobToReturn.Id }, shapedJob);
+                }
+
                 return CreatedAtRoute("GetJob", new { jobId = jobToReturn.Id }, jobToReturn);
             }
             // why map back and fourth?
@@ -200,8 +260,15 @@ namespace AoApi.Controllers
             return NoContent();
         }
 
+        [SwaggerOperation(
+            Summary = "Delete an existing job",
+            Description = "Deletes an existing job")]
+        [SwaggerResponse(200, "Successfully deleted job")]
+        [SwaggerResponse(404, "Job not found")]
+        [SwaggerResponse(500, "Failed to delete job")]
         [HttpDelete("{jobId}", Name = "DeleteJob")]
-        public async Task<IActionResult> DeleteJobAsync([FromRoute] Guid jobId)
+        public async Task<IActionResult> DeleteJobAsync(
+            [FromRoute, SwaggerParameter("Id of job to delete", Required = true)] Guid jobId)
         {
             var foundJob = await _jobRepository.GetFirstByConditionAsync(j => j.Id == jobId);
 
