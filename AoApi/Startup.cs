@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AoApi.Data;
 using AoApi.Data.Models;
-using AoApi.Data.Repositories;
 using AoApi.Services.PropertyMappingServices;
 using AoApi.Services;
 using AoApi.Services.Data.DtoModels.EmployeeDtos;
@@ -14,7 +13,6 @@ using AoApi.Services.Data.DtoModels.UserDtos;
 using AoApi.Services.Data.DtoModels.WalletDtos;
 using AoApi.Services.Data.DtoModels.WorkhoursDtos;
 using AoApi.Services.Data.Repositories;
-using AoApi.Services.PropertyMappingServices;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -99,6 +97,7 @@ namespace AoApi
 
             services.AddSwaggerGen(setupAction =>
             {
+                setupAction.EnableAnnotations();
                 setupAction.SwaggerDoc("v1", new Info { Title = "Administrative Organizer Api", Version = "v1" });
             });
 
