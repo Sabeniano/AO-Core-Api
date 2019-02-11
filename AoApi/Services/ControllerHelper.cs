@@ -60,6 +60,15 @@ namespace AoApi.Services
             return linkedCollection;
         }
 
+        public ExpandoObject AddLinksToCollection(IEnumerable<IDictionary<string, object>> collection, string resourceName, object value)
+        {
+            var linkedCollection = new ExpandoObject();
+            var links = _hateoasHelper.CreateLinksForChildResources(resourceName, value);
+            ((IDictionary<string, object>)linkedCollection).Add("records", collection);
+            ((IDictionary<string, object>)linkedCollection).Add("links", links);
+            return linkedCollection;
+        }
+
         public IEnumerable<LinksObject> CreateLinksForResource(Guid id, string fields, string resourceName)
         {
             return _hateoasHelper.CreateLinksForResource(id, fields, resourceName);
