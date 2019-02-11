@@ -25,7 +25,7 @@ namespace AoApi.Data.Models
         public string PhoneNumber { get; set; }
 
         // relation to User
-        public User User { get; set; }
+        //public User User { get; set; }
 
         // relation to job
         public Guid JobId { get; set; }
