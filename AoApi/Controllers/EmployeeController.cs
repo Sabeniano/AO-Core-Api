@@ -12,15 +12,18 @@ using AoApi.Services;
 using Newtonsoft.Json;
 using System.Dynamic;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Http;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace AoApi.Controllers
 {
+    /// <summary>
+    /// Controller that handles all requests to /api/employees
+    /// </summary>
     [Route("api/employees")]
     [ApiController]
     public class EmployeeController : ControllerBase
     {
+
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IPropertyMappingService _propertyMappingService;
         private readonly ITypeHelperService _typeHelperService;
@@ -36,6 +39,13 @@ namespace AoApi.Controllers
             _controllerHelper = controllerHelper;
         }
 
+        /// <summary>
+        /// Retrieves a paged list of all employees.
+        /// Can also return a hateoas response if requested
+        /// </summary>
+        /// <param name="request">a DTO class to handle request paramters</param>
+        /// <param name="mediaType">media type in case HATEAOS is requested</param>
+        /// <returns>A list of paged employees</returns>
         [SwaggerOperation(
             Summary = "Retrieve all employees",
             Description = "Retrieves all the employees",
@@ -90,6 +100,13 @@ namespace AoApi.Controllers
             return Ok(shapedEmployees);
         }
 
+        /// <summary>
+        /// Retrieves a single employee by the ID
+        /// </summary>
+        /// <param name="employeeId">Id of employee</param>
+        /// <param name="fields">requested properties of the object, if any</param>
+        /// <param name="mediaType">media type in case HATEAOS is requested</param>
+        /// <returns>An employee</returns>
         [SwaggerOperation(
             Summary = "Retrieve one employee",
             Description = "Retrieves one employee",
@@ -121,6 +138,13 @@ namespace AoApi.Controllers
             return Ok(shapedEmployee);
         }
 
+        /// <summary>
+        /// Creates an employee in the persistence layer
+        /// </summary>
+        /// <param name="employeeToCreate">the employee to create</param>
+        /// <param name="fields">properties to return after done creating</param>
+        /// <param name="mediaType">media type in case HATEAOS is requested</param>
+        /// <returns></returns>
         [SwaggerOperation(
             Summary = "Create an employee",
             Description = "Creates an employee",
@@ -168,6 +192,13 @@ namespace AoApi.Controllers
             return CreatedAtRoute("GetEmployee", new { employeeId = employeeToReturn.Id }, employeeToReturn);
         }
 
+        /// <summary>
+        /// Update an employee
+        /// </summary>
+        /// <param name="employeeId">Id of the employee to update</param>
+        /// <param name="employeeToUpdate">What to update the employee with</param>
+        /// <param name="mediaType">media type in case HATEAOS is requested</param>
+        /// <returns></returns>
         [SwaggerOperation(
             Summary = "update an employee",
             Description = "updates an employee, or creates one if none exists(upserting)",
@@ -217,6 +248,13 @@ namespace AoApi.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Partially update an employee
+        /// </summary>
+        /// <param name="employeeId">Id of the employee to partially update</param>
+        /// <param name="jsonPatchDocument">The operation to perform on the employee</param>
+        /// <param name="mediaType">media type in case HATEAOS is requested</param>
+        /// <returns></returns>
         [SwaggerOperation(
             Summary = "partually update an using jsonpatch employee",
             Description = "partially updates an employee, or creates one if none exists(upserting)",
@@ -282,6 +320,11 @@ namespace AoApi.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Delete an employee 
+        /// </summary>
+        /// <param name="employeeId">Id of the employee to delete</param>
+        /// <returns>status 200</returns>
         [SwaggerOperation(
             Summary = "Delete an existing employee",
             Description = "Deletes an existing employee")]

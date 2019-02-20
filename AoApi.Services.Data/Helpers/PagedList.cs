@@ -4,6 +4,10 @@ using System.Linq;
 
 namespace AoApi.Services.Data.Helpers
 {
+    /// <summary>
+    /// Pagedlist class that extends List<T> with extra properties that contain pagination information
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class PagedList<T> : List<T>
     {
         public int CurrentPage { get; private set; }
@@ -36,6 +40,13 @@ namespace AoApi.Services.Data.Helpers
             AddRange(items);
         }
 
+        /// <summary>
+        /// Create a paged list isntance
+        /// </summary>
+        /// <param name="source">List of items to add to the paged list</param>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize">the size of items in pages</param>
+        /// <returns>a new instance of PagedList<T></returns>
         public static PagedList<T> Create(IEnumerable<T> source, int pageNumber, int pageSize)
         {
             var count = source.Count();
