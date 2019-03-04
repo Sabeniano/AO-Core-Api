@@ -5,8 +5,18 @@ using System.Reflection;
 
 namespace AoApi.Helpers
 {
+    /// <summary>
+    /// Extensions for IEnumerable of T
+    /// </summary>
     public static class IEnumerableExtensions
     {
+        /// <summary>
+        /// shapes each item in the IEnumerable into a dynamic expando object with the given fields only
+        /// </summary>
+        /// <typeparam name="TSource">Type of the items in the IEnumerable of T</typeparam>
+        /// <param name="source">the iEnumerable to shape the items of</param>
+        /// <param name="fields">The fields to keep in the new expando object</param>
+        /// <returns></returns>
         public static IEnumerable<ExpandoObject> ShapeData<TSource>(this IEnumerable<TSource> source, string fields)
         {
             if (source == null)
