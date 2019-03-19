@@ -5,8 +5,19 @@ using System.Linq.Dynamic.Core;
 
 namespace AoApi.Services.Data.Helpers
 {
-    public static class IQueryableExtension
+    /// <summary>
+    /// Contains all extensions to IQueryable<T>
+    /// </summary>
+    public static class IQueryableExtensions
     {
+        /// <summary>
+        /// sorts the queryable items by a desired order
+        /// </summary>
+        /// <typeparam name="T">the type of the IQueryAble</typeparam>
+        /// <param name="source">the IQueryable list to run this on</param>
+        /// <param name="orderBy">property to order by</param>
+        /// <param name="mapping">mapping to make sure the property exists</param>
+        /// <returns>Sorted IQueryable</returns>
         public static IQueryable<T> Applysort<T>(this IQueryable<T> source, string orderBy, IDictionary<string, IEnumerable<string>> mapping)
         {
             if (source == null)

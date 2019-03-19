@@ -8,6 +8,9 @@ using AoApi.Data.Common;
 
 namespace AoApi.Data
 {
+    /// <summary>
+    /// the EntityFramework core database context
+    /// </summary>
     public class AOContext : DbContext
     {
         public DbSet<Employee> Employees { get; set; }
@@ -23,14 +26,32 @@ namespace AoApi.Data
         {
         }
 
+        /// <summary>
+        /// Adds audit information and
+        /// asynchronously saves the changes done to the context in the persistence layer
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken)) => SaveChangesAsync(true, cancellationToken);
 
+        /// <summary>
+        /// Adds audit information and
+        /// asynchronously saves the changes done to the context in the persistence layer
+        /// </summary>
+        /// <param name="acceptAllChangesOnSuccess"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken))
         {
             //  add audit information before saving
             AddAuditInformation();
             return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
+
+        /// <summary>
+        /// Configuration for the construction of the models
+        /// </summary>
+        /// <param name="modelBuilder"></param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder
@@ -325,6 +346,9 @@ namespace AoApi.Data
 
         }
 
+        /// <summary>
+        /// Adds adit information to saved/changed entities
+        /// </summary>
         private void AddAuditInformation()
         {
             //  get the changed entries from the changed tracker

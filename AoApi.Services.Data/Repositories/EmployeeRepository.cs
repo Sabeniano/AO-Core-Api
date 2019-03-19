@@ -9,12 +9,24 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AoApi.Services.Data.Repositories
 {
+    /// <summary>
+    /// Implementation of the data access layer for the Employee model/table
+    /// </summary>
     public class EmployeeRepository : RepositoryBase<Employee>, IEmployeeRepository
     {
         public EmployeeRepository(AOContext context) : base(context)
         {
         }
 
+        /// <summary>
+        /// Gets a sorted and paged list of all the employees
+        /// </summary>
+        /// <param name="orderBy">property to order by</param>
+        /// <param name="searchQuery">find certain ones by a search</param>
+        /// <param name="pageNumber">page number to get</param>
+        /// <param name="pageSize">how many in each page</param>
+        /// <param name="mapping">the mapping of the properties</param>
+        /// <returns>A Task that eventually resolves to a PagedList<T></returns>
         public async Task<PagedList<Employee>> GetEmployeesAsync(
             string orderBy, string searchQuery,
             int pageNumber, int pageSize, IDictionary<string, IEnumerable<string>> mapping)
